@@ -6,7 +6,7 @@ class MenuItem < ApplicationRecord
   belongs_to :menu
 
   def convert_cents
-    price / 100
+    price / 100.to_f
   end
 end
 
