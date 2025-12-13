@@ -8,5 +8,7 @@ class CreateMenuItems < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
+
+    add_index :menu_items, [ :name, :menu_id ], unique: true
   end
 end
