@@ -1,19 +1,25 @@
 require 'rails_helper'
 
-RSpec.describe 'Api::V1::Menus', type: :request do
+RSpec.describe 'Api::V1::Restaurants', type: :request do
   let(:headers) { { 'CONTENT_TYPE' => 'application/json' } }
   let(:restaurant) { Restaurant.create!(name: 'Test Restaurant') }
 
-  describe 'GET /api/v1/menus' do
-    it 'returns all menus' do
-      Menu.create!(name: 'Breakfast', restaurant:)
-      Menu.create!(name: 'Lunch', restaurant:)
+  describe 'GET /api/v1/restaurants' do
+    it 'returns all restaurants with "menu" and "menu_item" associations' do
+      menu1 = Menu.create!(name: 'Breakfast', restaurant:)
+      menu2 = Menu.create!(name: 'Lunch', restaurant:)
+      MenuItem.create!(name: 'Burger', price: 700, menu: menu1)
+      MenuItem.create!(name: 'Cheesebread', price: 300, menu: menu2)
 
-      get '/api/v1/menus', headers: headers
+      get '/api/v1/restaurants', headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
-      expect(json['data'].length).to eq(2)
+
+      expect(json['data'].length).to eq(1)
+      expect(json['data'][0]['menus'].length).to eq(2)
+      expect(json['data'][0]['menus'][0]['menu_items'].length).to eq(1)
+      expect(json['data'][0]['menus'][1]['menu_items'].length).to eq(1)
     end
   end
 

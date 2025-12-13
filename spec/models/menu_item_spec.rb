@@ -1,7 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe MenuItem, type: :model do
-  let(:menu) { Menu.create!(name: 'Brunch') }
+  let(:restaurant) { Restaurant.create!(name: 'Test Restaurant') }
+  let(:menu) { Menu.create!(name: 'Brunch', restaurant:) }
 
   it 'is valid with a name, price and menu' do
     item = menu.menu_items.build(name: 'Pancakes', price: 500)

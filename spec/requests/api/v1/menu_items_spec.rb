@@ -2,10 +2,11 @@ require 'rails_helper'
 
 RSpec.describe 'Api::V1::MenuItems', type: :request do
   let(:headers) { { 'CONTENT_TYPE' => 'application/json' } }
+  let(:restaurant) { Restaurant.create!(name: 'Test Restaurant') }
 
   describe 'GET /api/v1/menu_items' do
     it 'returns all menu items' do
-      menu = Menu.create!(name: 'Sides')
+      menu = Menu.create!(name: 'Sides', restaurant:)
       menu.menu_items.create!(name: 'Fries', price: 300)
       menu.menu_items.create!(name: 'Salad', price: 400)
 
@@ -19,7 +20,7 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
 
   describe 'GET /api/v1/menu_items/:id' do
     it 'returns the menu item' do
-      menu = Menu.create!(name: 'Mains')
+      menu = Menu.create!(name: 'Mains', restaurant:)
       item = menu.menu_items.create!(name: 'Burger', price: 850)
 
       get "/api/v1/menu_items/#{item.id}", headers: headers
@@ -33,7 +34,7 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
 
   describe 'POST /api/v1/menu_items' do
     it 'creates a menu_item' do
-      menu = Menu.create!(name: 'Desserts')
+      menu = Menu.create!(name: 'Desserts', restaurant:)
       params = { menu_item: { name: 'Cake', price: 600, menu_id: menu.id } }.to_json
 
       post '/api/v1/menu_items', params: params, headers: headers
@@ -42,9 +43,10 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
       json = JSON.parse(response.body)
       expect(json['data']['name']).to eq('Cake')
       expect(json['data']['menu_id']).to eq(menu.id)
+      expect(json['data']['price']).to eq(6.0)
     end
 
-    it 'returns unprocessable entity when invalid' do
+    it 'returns bad request when entity is invalid' do
       params = { menu_item: { name: nil, price: nil } }.to_json
 
       post '/api/v1/menu_items', params: params, headers: headers
@@ -53,11 +55,23 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
       json = JSON.parse(response.body)
       expect(json['errors']).to include("Name can't be blank").or include("Price can't be blank")
     end
+
+    it 'return conflict status when a menu_item with the same name already exists' do
+      menu = Menu.create!(name: 'Desserts', restaurant:)
+      MenuItem.create!(name: 'Cake', price: 600, menu_id: menu.id)
+
+      params = { menu_item: { name: 'Cake', price: 600, menu_id: menu.id } }.to_json
+
+      post '/api/v1/menu_items', params: params, headers: headers
+
+      expect(response).to have_http_status(:conflict)
+
+    end
   end
 
   describe 'PATCH /api/v1/menu_items/:id' do
     it 'updates the menu_item' do
-      menu = Menu.create!(name: 'Drinks')
+      menu = Menu.create!(name: 'Drinks', restaurant:)
       item = menu.menu_items.create!(name: 'Tea', price: 200)
       params = { menu_item: { name: 'Iced Tea', price: 250 } }.to_json
 
@@ -72,7 +86,7 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
 
   describe 'DELETE /api/v1/menu_items/:id' do
     it 'deletes the menu_item' do
-      menu = Menu.create!(name: 'Appetizers')
+      menu = Menu.create!(name: 'Appetizers', restaurant:)
       item = menu.menu_items.create!(name: 'Wings', price: 500)
 
       delete "/api/v1/menu_items/#{item.id}", headers: headers
