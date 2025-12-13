@@ -1,39 +1,38 @@
 class Api::V1::MenuItemsController < ApplicationController
   before_action :set_menu_item, only: %i[ show update destroy ]
 
-  # GET /menu_items
+  # GET /api/v1/menu_items
   def index
     @menu_items = MenuItem.all
 
-    render_success(data: @menu_items)
+    render_success(data: MenuItemSerializer.collection(@menu_items))
   end
 
-  # GET /menu_items/1
+  # GET /api/v1/menu_items/1
   def show
-    render_success(data: @menu_item)
+    render_success(data: MenuItemSerializer.new(@menu_item))
   end
 
-  # POST /menu_items
+  # POST /api/v1/menu_items
   def create
-    @menu_item = MenuItem.new(menu_item_params)
+    @menu_item = MenuItem.create!(menu_item_params)
 
-    if @menu_item.save
-      render_success(data: @menu_item, status: :created)
-    else
-      render_error(errors: @menu_item.errors.full_messages, status: :unprocessable_entity)
-    end
+    render_success(
+      data: MenuItemSerializer.new(@menu_item).as_json,
+      status: :created
+    )
   end
 
-  # PATCH/PUT /menu_items/1
+  # PATCH/PUT /api/v1/menu_items/1
   def update
     if @menu_item.update(menu_item_params)
-      render_success(data: @menu_item)
+      render_success(data: MenuItemSerializer.new(@menu_item))
     else
-      render_error(errors: @menu_item.errors.full_messages, status: :unprocessable_entity)
+      render_error(errors: MenuItemSerializer.new(@menu_item).errors.full_messages, status: :unprocessable_entity)
     end
   end
 
-  # DELETE /menu_items/1
+  # DELETE /api/v1/menu_items/1
   def destroy
     @menu_item.destroy!
 

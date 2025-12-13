@@ -1,39 +1,32 @@
 class Api::V1::MenusController < ApplicationController
   before_action :set_menu, only: %i[ show update destroy ]
 
-  # GET /menus
+  # GET /api/v1/menus
   def index
     @menus = Menu.all
 
-    render_success(data: @menus)
+    render_success(data: MenuSerializer.collection(@menus))
   end
 
-  # GET /menus/1
+  # GET /api/v1/menus/1
   def show
-    render_success(data: @menu)
+    render_success(data: MenuSerializer.new(@menu), status: :ok)
   end
 
-  # POST /menus
+  # POST /api/v1/menus
   def create
-    @menu = Menu.new(menu_params)
+    @menu = Menu.create!(menu_params)
 
-    if @menu.save
-      render_success(data: @menu, status: :created)
-    else
-      render_error(errors: @menu.errors.full_messages, status: :unprocessable_entity)
-    end
+    render_success(data: MenuSerializer.new(@menu), status: :created)
   end
 
-  # PATCH/PUT /menus/1
+  # PATCH/PUT /api/v1/menus/1
   def update
-    if @menu.update(menu_params)
-      render_success(data: @menu, status: :ok)
-    else
-      render_error(errors: @menu.errors.full_messages, status: :unprocessable_entity)
-    end
+    @menu.update!(menu_params)
+    render_success(data: MenuSerializer.new(@menu), status: :ok)
   end
 
-  # DELETE /menus/1
+  # DELETE /api/v1/menus/1
   def destroy
     @menu.destroy!
 
@@ -48,6 +41,6 @@ class Api::V1::MenusController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def menu_params
-      params.require(:menu).permit(:name)
+      params.require(:menu).permit(:name, :restaurant_id)
     end
 end
