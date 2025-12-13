@@ -1,20 +1,19 @@
 class ApplicationController < ActionController::API
+  rescue_from StandardError, with: :render_internal_server_error
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :render_unprocessable_entity
-  rescue_from StandardError, with: :render_internal_server_error
+  rescue_from ActiveRecord::RecordNotUnique, with: :render_conflict_error
 
   private
 
   def render_success(data:, status: :ok)
     render json: {
-      status: Rack::Utils::SYMBOL_TO_STATUS_CODE[status],
       data: data
     }, status: status
   end
 
   def render_error(errors:, status:)
     render json: {
-      status: Rack::Utils::SYMBOL_TO_STATUS_CODE[status],
       errors: Array(errors)
     }, status: status
   end
@@ -29,5 +28,24 @@ class ApplicationController < ActionController::API
 
   def render_internal_server_error(error)
     render_error(errors: error.message, status: :internal_server_error)
+  end
+
+  def render_conflict_error(error)
+    message =
+      if error.cause.is_a?(SQLite3::ConstraintException)
+        humanize_sqlite_unique_error(error.cause.message)
+      else
+        "Resource already exists"
+      end
+
+    render_error(errors: message, status: :conflict)
+  end
+
+  def humanize_sqlite_unique_error(message)
+    if message.include?("menu_items.name, menu_items.menu_id")
+      "Menu item name must be unique within the menu"
+    else
+      "Duplicate resource"
+    end
   end
 end
