@@ -23,14 +23,18 @@ class ApplicationController < ActionController::API
   end
 
   def render_unprocessable_entity(error)
+    Rails.logger.error(error)
     render_error(errors: error.record.errors.full_messages, status: :unprocessable_entity)
   end
 
   def render_internal_server_error(error)
+    Rails.logger.error(error)
     render_error(errors: error.message, status: :internal_server_error)
   end
 
   def render_conflict_error(error)
+    Rails.logger.error(error)
+
     message =
       if error.cause.is_a?(SQLite3::ConstraintException)
         humanize_sqlite_unique_error(error.cause.message)
