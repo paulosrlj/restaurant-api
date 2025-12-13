@@ -56,7 +56,7 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
       expect(json['errors']).to include("Name can't be blank").or include("Price can't be blank")
     end
 
-    it 'return conflict status when a menu_item with the same name already exists' do
+    it 'return unprocessable_entity status when a menu_item with the same name in the same menu already exists' do
       menu = Menu.create!(name: 'Desserts', restaurant:)
       MenuItem.create!(name: 'Cake', price: 600, menu_id: menu.id)
 
@@ -64,7 +64,7 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
 
       post '/api/v1/menu_items', params: params, headers: headers
 
-      expect(response).to have_http_status(:conflict)
+      expect(response).to have_http_status(:unprocessable_entity)
 
     end
   end

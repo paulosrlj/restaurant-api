@@ -41,6 +41,19 @@ RSpec.describe 'Api::V1::Menus', type: :request do
       expect(json['data']['name']).to eq('Specials')
     end
 
+    it 'creates a menu with menu_items' do
+      menu_items_attributes = [{ "name": "Bread", "price": 200 }]
+      params = { menu: { name: 'Specials', restaurant_id: restaurant.id, menu_items_attributes: } }.to_json
+
+      post '/api/v1/menus', params: params, headers: headers
+
+      expect(response).to have_http_status(:created)
+      json = JSON.parse(response.body)
+      p json
+      expect(json['data']['name']).to eq('Specials')
+      expect(json['data']['menu_items']).to match([a_hash_including('name' => 'Bread', 'price' => 2.0)])
+    end
+
     it 'returns unprocessable entity when invalid' do
       params = { menu: { name: nil } }.to_json
 
