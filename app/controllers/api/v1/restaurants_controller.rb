@@ -3,7 +3,7 @@ class Api::V1::RestaurantsController < ApplicationController
 
   # GET /api/v1/restaurants
   def index
-    @restaurants = Restaurant.includes(:menus)
+    @pagy, @restaurants = pagy(:offset, Restaurant.includes(:menus))
 
     render_success(data: RestaurantSerializer.collection(@restaurants))
   end

@@ -3,7 +3,7 @@ class Api::V1::MenuItemsController < ApplicationController
 
   # GET /api/v1/menu_items
   def index
-    @menu_items = MenuItem.all
+    @pagy, @menu_items = pagy(:offset, MenuItem.all)
 
     render_success(data: MenuItemSerializer.collection(@menu_items))
   end
