@@ -15,6 +15,19 @@ RSpec.describe 'Api::V1::Menus', type: :request do
       json = JSON.parse(response.body)
       expect(json['data'].length).to eq(2)
     end
+
+    it 'returns only 20 menus due to pagination' do
+      30.times do |num|
+        Menu.create!(name: "Test Menu#{num}", restaurant:)
+      end
+
+      get '/api/v1/menus?page=1', headers: headers
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+
+      expect(json['data'].length).to eq(20)
+    end
   end
 
   describe 'GET /api/v1/menus/:id' do

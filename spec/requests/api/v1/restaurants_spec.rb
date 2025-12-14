@@ -21,6 +21,19 @@ RSpec.describe 'Api::V1::Restaurants', type: :request do
       expect(json['data'][0]['menus'][0]['menu_items'].length).to eq(1)
       expect(json['data'][0]['menus'][1]['menu_items'].length).to eq(1)
     end
+
+    it 'returns only 10 restaurants due to pagination' do
+      30.times do |num|
+        Restaurant.create!(name: "Test Restaurant#{num}")
+      end
+
+      get '/api/v1/restaurants?page=1', headers: headers
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+
+      expect(json['data'].length).to eq(20)
+    end
   end
 
   describe 'GET /api/v1/menus/:id' do
