@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::API
+  include Pagy::Method
+
   rescue_from StandardError, with: :render_internal_server_error
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :render_unprocessable_entity
