@@ -71,6 +71,20 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
       expect(json['errors']).to include("Name can't be blank").or include("Price can't be blank")
     end
 
+    it 'should be possible to create the same menu_item on a different menu in the same restaurant' do
+      menu1 = Menu.create!(name: 'Breakfast', restaurant:)
+      menu2 = Menu.create!(name: 'Dinner', restaurant:)
+      MenuItem.create!(name: 'Eggs', price: 200, menu_id: menu1.id)
+
+      params = { menu_item: { name: 'Eggs', price: 200, menu_id: menu2.id } }.to_json
+
+      post '/api/v1/menu_items', params: params, headers: headers
+
+      expect(response).to have_http_status(:created)
+      json = JSON.parse(response.body)
+      expect(json['data']).to match(a_hash_including('name' => 'Eggs', 'price' => 2.0, 'menu_id' => 2))
+    end
+
     it 'return unprocessable_entity status when a menu_item with the same name in the same menu already exists' do
       menu = Menu.create!(name: 'Desserts', restaurant:)
       MenuItem.create!(name: 'Cake', price: 600, menu_id: menu.id)
@@ -80,7 +94,6 @@ RSpec.describe 'Api::V1::MenuItems', type: :request do
       post '/api/v1/menu_items', params: params, headers: headers
 
       expect(response).to have_http_status(:unprocessable_entity)
-
     end
   end
 

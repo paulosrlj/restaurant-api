@@ -62,7 +62,6 @@ RSpec.describe 'Api::V1::Menus', type: :request do
 
       expect(response).to have_http_status(:created)
       json = JSON.parse(response.body)
-      p json
       expect(json['data']['name']).to eq('Specials')
       expect(json['data']['menu_items']).to match([a_hash_including('name' => 'Bread', 'price' => 2.0)])
     end
