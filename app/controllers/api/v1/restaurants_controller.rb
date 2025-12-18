@@ -42,6 +42,6 @@ class Api::V1::RestaurantsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def restaurant_params
-      params.require(:restaurant).permit(:name)
+      params.require(:restaurant).permit(:name, menus_attributes: [ :name, menu_items_attributes: [ :name, :price ] ])
     end
 end
