@@ -5,7 +5,7 @@ Rails.application.routes.draw do
       resources :menus
       resources :menu_items
 
-      post "/json_to_model/convert", to: "json_to_model_converter#convert"
+      post "/json_to_model/convert", to: "json_to_model#convert"
     end
   end
 

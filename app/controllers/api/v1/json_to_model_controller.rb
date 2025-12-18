@@ -1,4 +1,4 @@
-class Api::V1::JsonToModelConverterController < ApplicationController
+class Api::V1::JsonToModelController < ApplicationController
 
   def convert
     data = extract_data_from_payload
