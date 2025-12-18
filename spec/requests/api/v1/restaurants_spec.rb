@@ -36,34 +36,72 @@ RSpec.describe 'Api::V1::Restaurants', type: :request do
     end
   end
 
-  describe 'GET /api/v1/menus/:id' do
-    it 'returns the menu' do
-      menu = Menu.create!(name: 'Dinner', restaurant:)
+  describe 'GET /api/v1/restaurants/:id' do
+    it 'returns the restaurant' do
+      restaurant = Restaurant.create!(name: 'Test Restaurant')
 
-      get "/api/v1/menus/#{menu.id}", headers: headers
+      get "/api/v1/restaurants/#{restaurant.id}", headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
-      expect(json['data']['id']).to eq(menu.id)
-      expect(json['data']['name']).to eq('Dinner')
+      expect(json['data']['id']).to eq(restaurant.id)
+      expect(json['data']['name']).to eq('Test Restaurant')
     end
   end
 
-  describe 'POST /api/v1/menus' do
-    it 'creates a menu' do
-      params = { menu: { name: 'Specials', restaurant_id: restaurant.id } }.to_json
+  describe 'POST /api/v1/restaurants' do
+    it 'creates a restaurant' do
+      params = { restaurant: { name: 'Test Restaurant' } }.to_json
 
-      post '/api/v1/menus', params: params, headers: headers
+      post '/api/v1/restaurants', params: params, headers: headers
 
       expect(response).to have_http_status(:created)
       json = JSON.parse(response.body)
-      expect(json['data']['name']).to eq('Specials')
+      expect(json['data']['name']).to eq('Test Restaurant')
+    end
+
+    it 'creates a restaurant with nested associations' do
+      params = {
+        restaurant: {
+          name: 'Test Restaurant',
+          menus_attributes: [
+            {
+              name: 'Test Menu',
+              menu_items_attributes: [
+                { name: 'Item 1 test', price: 200 },
+                { name: 'Item 2 test', price: 200 }
+              ]
+            }
+          ]
+        }
+      }.to_json
+
+      post '/api/v1/restaurants', params: params, headers: headers
+
+      expect(response).to have_http_status(:created)
+
+      json = JSON.parse(response.body)
+      data = json['data']
+
+      # Restaurant
+      expect(data['name']).to eq('Test Restaurant')
+      expect(data['menus'].size).to eq(1)
+
+      # Menu
+      menu = data['menus'].first
+      expect(menu['name']).to eq('Test Menu')
+      expect(menu['menu_items'].size).to eq(2)
+
+      # MenuItem
+      item = menu['menu_items'].first
+      expect(item['name']).to eq('Item 1 test')
+      expect(item['price']).to eq(2)
     end
 
     it 'returns unprocessable entity when invalid' do
-      params = { menu: { name: nil } }.to_json
+      params = { restaurant: { name: nil } }.to_json
 
-      post '/api/v1/menus', params: params, headers: headers
+      post '/api/v1/restaurants', params: params, headers: headers
 
       expect(response).to have_http_status(:unprocessable_entity)
       json = JSON.parse(response.body)
@@ -71,28 +109,28 @@ RSpec.describe 'Api::V1::Restaurants', type: :request do
     end
   end
 
-  describe 'PATCH /api/v1/menus/:id' do
-    it 'updates the menu' do
-      menu = Menu.create!(name: 'Old', restaurant:)
-      params = { menu: { name: 'Updated' } }.to_json
+  describe 'PATCH /api/v1/restaurants/:id' do
+    it 'updates the restaurant' do
+      restaurant = Restaurant.create!(name: 'Test Restaurant')
+      params = { restaurant: { name: 'Test Restaurant Updated' } }.to_json
 
-      patch "/api/v1/menus/#{menu.id}", params: params, headers: headers
+      patch "/api/v1/restaurants/#{restaurant.id}", params: params, headers: headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
-      expect(json['data']['name']).to eq('Updated')
-      expect(menu.reload.name).to eq('Updated')
+      expect(json['data']['name']).to eq('Test Restaurant Updated')
+      expect(restaurant.reload.name).to eq('Test Restaurant Updated')
     end
   end
 
-  describe 'DELETE /api/v1/menus/:id' do
-    it 'deletes the menu' do
-      menu = Menu.create!(name: 'ToDelete', restaurant:)
+  describe 'DELETE /api/v1/restaurants/:id' do
+    it 'deletes the restaurant' do
+      restaurant = Restaurant.create!(name: 'Test Restaurant')
 
-      delete "/api/v1/menus/#{menu.id}", headers: headers
+      delete "/api/v1/restaurants/#{restaurant.id}", headers: headers
 
       expect(response).to have_http_status(:no_content)
-      expect { Menu.find(menu.id) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { Restaurant.find(restaurant.id) }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 end
